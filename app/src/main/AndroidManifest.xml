@@ -12,7 +12,8 @@
             android:name="tk.elevenk.proxysetter.MainActivity"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
             android:clearTaskOnLaunch="true"
-            android:finishOnTaskLaunch="true">
+            android:finishOnTaskLaunch="true"
+            android:exported="true">
         </activity>
     </application>
 
