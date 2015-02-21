@@ -18,7 +18,7 @@ import be.shouldit.proxy.lib.reflection.android.ProxySetting;
 public class MainActivity extends Activity {
 
     private static final String HOST = "host", PORT = "port", SSID = "ssid", TAG = "ProxySetterApp",
-            CLEAR = "clear", BYPASS = "bypass";
+            CLEAR = "clear", BYPASS = "bypass", RESET_WIFI = "reset-wifi";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,17 +28,21 @@ public class MainActivity extends Activity {
         // must have ssid to continue
         if (intent.hasExtra(SSID)) {
             String ssid = intent.getStringExtra(SSID);
+            // Resetting wifi will fix problems with a new wifi network being created by Genymotion
+            // that has an identical SSID or a null SSID
+            boolean resetWifi;
+            try{
+                resetWifi = Boolean.parseBoolean(intent.getStringExtra(RESET_WIFI));
+            } catch (Exception e) {
+                resetWifi = false;
+            }
 
-            // setup android proxy library and get list of network id's
             APL.setup(getApplicationContext());
-            Map<APLNetworkId, WifiConfiguration> networks = APL.getConfiguredNetworks();
 
-            // find the network id associated with the given SSID
-            APLNetworkId networkId = null;
-            for (APLNetworkId aplNetworkId : networks.keySet()) {
-                if (aplNetworkId.SSID.equals(ssid)) {
-                    networkId = aplNetworkId;
-                }
+            APLNetworkId networkId = findNetowrkId(ssid);
+            if(networkId == null && resetWifi){
+                restartWifi();
+                networkId = findNetowrkId(ssid);
             }
 
             if (networkId != null) {
@@ -52,10 +56,10 @@ public class MainActivity extends Activity {
                 } catch (Exception e) {
                     clearProxy = false;
                 }
-                int port = 8080;
 
                 WiFiApConfig wiFiApConfig = APL.getWiFiApConfiguration(APL.getConfiguredNetwork(networkId));
                 ProxySetting proxySetting = null;
+                int port = 8080;
                 if (clearProxy) {
                     proxySetting = ProxySetting.NONE;
                 } else if (host != null) {
@@ -79,46 +83,30 @@ public class MainActivity extends Activity {
 
                 if (proceed) {
                     wiFiApConfig.setProxySetting(proxySetting);
-
-                    // Make change using APL
-                    try {
-                        APL.writeWifiAPConfig(wiFiApConfig);
-                    } catch (Exception e) {
-                        if (!clearProxy) {
+                    if(!setProxy(wiFiApConfig, networkId, proxySetting, host, port, bypass, clearProxy)){
+                        if(resetWifi) {
                             Toast.makeText(getApplicationContext(),
-                                    "APL Error: proxy not set", Toast.LENGTH_LONG).show();
-                            Log.e(TAG, "APL Error", e);
-                        }
-                    }
-
-                    // Get the current config settings to see if proxy was changed
-                    WiFiApConfig newConfig = APL.getWiFiApConfiguration(APL.getConfiguredNetwork(networkId));
-                    if(newConfig.getProxySetting().equals(proxySetting)) {
-                        if (proxySetting.equals(ProxySetting.NONE)) {
-                            Toast.makeText(getApplicationContext(), "Proxy cleared",
+                                    "Error: proxy not set. Trying to reset wifi and set again.",
                                     Toast.LENGTH_LONG).show();
-                        }
-                        else if (newConfig.getProxyHost().equals(host)
-                                && newConfig.getProxyPort() == port
-                                && (newConfig.getProxyExclusionList().isEmpty()
-                                || newConfig.getProxyExclusionList().equals(bypass))) {
-                            Toast.makeText(getApplicationContext(), "Proxy set to " + host + ":" + port
-                                    + " bypass: " + bypass, Toast.LENGTH_LONG).show();
-                        }
-                        else {
+                            restartWifi();
+                            if (!setProxy(wiFiApConfig, networkId, proxySetting, host, port, bypass, clearProxy)) {
+                                Toast.makeText(getApplicationContext(),
+                                        "Error: proxy not set. Try clearing the proxy setting manually first.",
+                                        Toast.LENGTH_LONG).show();
+                            }
+                        } else {
                             Toast.makeText(getApplicationContext(),
                                     "Error: proxy not set. Try clearing the proxy setting manually first.",
                                     Toast.LENGTH_LONG).show();
                         }
-                    } else {
-                        Toast.makeText(getApplicationContext(),
-                                "Error: proxy not set. Try clearing the proxy setting manually first.",
-                                Toast.LENGTH_LONG).show();
                     }
+
+                    
+                    
                 }
             } else {
                 Toast.makeText(getApplicationContext(),
-                        "Error: proxy not set. Invalid SSID: " + ssid,
+                        "Error: proxy not set. Check connection to: " + ssid,
                         Toast.LENGTH_LONG).show();
             }
         } else {
@@ -129,5 +117,75 @@ public class MainActivity extends Activity {
         finish();
     }
 
+    private boolean setProxy(WiFiApConfig wiFiApConfig, APLNetworkId networkId, 
+                             ProxySetting proxySetting, String host, int port, String bypass, 
+                             boolean clearProxy){
+        
+        if(wiFiApConfig != null) {
+            try {
+                APL.writeWifiAPConfig(wiFiApConfig);
+            } catch (Exception e) {
+                if (!clearProxy) {
+                    Toast.makeText(getApplicationContext(),
+                            "APL Error: proxy not set", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "APL Error", e);
+                    return false;
+                }
+            }
+        }
+
+        // Get the current config settings to see if proxy was changed
+        WiFiApConfig newConfig = APL.getWiFiApConfiguration(APL.getConfiguredNetwork(networkId));
+        if(newConfig.getProxySetting().equals(proxySetting)) {
+            if (proxySetting.equals(ProxySetting.NONE)) {
+                Toast.makeText(getApplicationContext(), "Proxy cleared",
+                        Toast.LENGTH_LONG).show();
+                return true;
+            }
+            else if (newConfig.getProxyHost().equals(host)
+                    && newConfig.getProxyPort() == port
+                    && (newConfig.getProxyExclusionList().isEmpty()
+                    || newConfig.getProxyExclusionList().equals(bypass))) {
+                Toast.makeText(getApplicationContext(), "Proxy set to " + host + ":" + port
+                        + " bypass: " + bypass, Toast.LENGTH_LONG).show();
+                return true;
+            }
+            else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+        
+    }
+    
+    private void restartWifi(){
+        try {
+            APL.disableWifi();
+            Thread.sleep(1000);
+            APL.enableWifi();
+            Thread.sleep(1000);
+            long timeout = 0;
+            while(APL.getConfiguredNetworks() == null || (APL.getConfiguredNetworks() != null && APL.getConfiguredNetworks().size() > 0)){
+                Thread.sleep(100);
+                timeout += 100;
+                if(timeout >= 5000){
+                    break;
+                }
+            }
+        } catch (Exception e){
+            Log.e(TAG, "Error resetting wifi", e);
+        }
+    }
+    
+    private APLNetworkId findNetowrkId(String _ssid){
+        Map<APLNetworkId, WifiConfiguration> networks = APL.getConfiguredNetworks();
+        for (APLNetworkId aplNetworkId : networks.keySet()) {
+            if (aplNetworkId.SSID.equals(_ssid)) {
+                return aplNetworkId;
+            }
+        }
+        return null;
+    }
 
 }
