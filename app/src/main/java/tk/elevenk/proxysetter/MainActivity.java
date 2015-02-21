@@ -3,10 +3,12 @@ package tk.elevenk.proxysetter;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.util.BitSet;
 import java.util.Map;
 
 import be.shouldit.proxy.lib.APL;
@@ -18,7 +20,7 @@ import be.shouldit.proxy.lib.reflection.android.ProxySetting;
 public class MainActivity extends Activity {
 
     private static final String HOST = "host", PORT = "port", SSID = "ssid", TAG = "ProxySetterApp",
-            CLEAR = "clear", BYPASS = "bypass", RESET_WIFI = "reset-wifi";
+            CLEAR = "clear", BYPASS = "bypass", RESET_WIFI = "reset-wifi", KEY = "key";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +30,7 @@ public class MainActivity extends Activity {
         // must have ssid to continue
         if (intent.hasExtra(SSID)) {
             String ssid = intent.getStringExtra(SSID);
+            String key = intent.getStringExtra(KEY);
             // Resetting wifi will fix problems with a new wifi network being created by Genymotion
             // that has an identical SSID or a null SSID
             boolean resetWifi;
@@ -41,7 +44,7 @@ public class MainActivity extends Activity {
 
             APLNetworkId networkId = findNetowrkId(ssid);
             if(networkId == null && resetWifi){
-                restartWifi();
+                restartWifi(ssid, key);
                 networkId = findNetowrkId(ssid);
             }
 
@@ -88,7 +91,7 @@ public class MainActivity extends Activity {
                             Toast.makeText(getApplicationContext(),
                                     "Error: proxy not set. Trying to reset wifi and set again.",
                                     Toast.LENGTH_LONG).show();
-                            restartWifi();
+                            restartWifi(ssid, key);
                             if (!setProxy(wiFiApConfig, networkId, proxySetting, host, port, bypass, clearProxy)) {
                                 Toast.makeText(getApplicationContext(),
                                         "Error: proxy not set. Try clearing the proxy setting manually first.",
@@ -159,14 +162,34 @@ public class MainActivity extends Activity {
         
     }
     
-    private void restartWifi(){
+    private void restartWifi(String ssid, String key){
         try {
-            APL.disableWifi();
-            Thread.sleep(1000);
+            //TODO: implement broadcast receiver to be notified when the network connection has been made
             APL.enableWifi();
-            Thread.sleep(1000);
+            WifiManager wifiManager = APL.getWifiManager();
+            if(APL.getConfiguredNetworks().size() > 0) {
+                wifiManager.removeNetwork(wifiManager.getConfiguredNetworks().get(0).networkId);
+            }
+            WifiConfiguration wifiConfiguration = new WifiConfiguration();
+            wifiConfiguration.SSID = "\"" + ssid + "\"";
+            if(key != null && key.length() >= 8) {
+                wifiConfiguration.preSharedKey = "\"" + key + "\"";
+            } else {
+                BitSet bitSet = new BitSet();
+                bitSet.set(WifiConfiguration.KeyMgmt.NONE);
+                wifiConfiguration.allowedKeyManagement = bitSet;
+            }
+            int netId = wifiManager.addNetwork(wifiConfiguration);
+            wifiManager.saveConfiguration();
+            wifiManager.disconnect();
+            wifiManager.enableNetwork(netId, true);
+            wifiManager.reconnect();
+
             long timeout = 0;
-            while(APL.getConfiguredNetworks() == null || (APL.getConfiguredNetworks() != null && APL.getConfiguredNetworks().size() > 0)){
+            while(APL.getConfiguredNetworks() == null 
+                    || (APL.getConfiguredNetworks() != null 
+                        && APL.getConfiguredNetworks().size() == 0)){
+                
                 Thread.sleep(100);
                 timeout += 100;
                 if(timeout >= 5000){
