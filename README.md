@@ -20,10 +20,10 @@ Extras:
 	-e key <shared key>				# The password/key for the wifi network
 	-e bypass <bypass string>		# The bypass string to use for proxy settings
 	-e reset-wifi <boolean>			# Whether or not to reset the wifi settings. This flag will tell
-													the tool to forget all connected networks, make a new
-													network config with the SSID and key given, and then
-													attempt to connect to the wifi network. If no key is given,
-													the wifi network is assumed to be unprotected/open
+										the tool to forget all connected networks, make a new
+										network config with the SSID and key given, and then
+										attempt to connect to the wifi network. If no key is given,
+										the wifi network is assumed to be unprotected/open
 	-e clear <boolean>				# A flag that will clear the proxy settings for the given SSID
 	
 Note that for setting a proxy, only host, port and ssid are required. The other extras are optional.
