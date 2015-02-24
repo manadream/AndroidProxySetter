@@ -361,7 +361,14 @@ public class APL
             Timber.e(e, "Problem getting WiFiApConfig from WifiConfiguration");
         }
 
-        APL.getTraceUtils().stopTrace(TAG, "getWiFiApConfiguration", String.format("Got configuration for %s",wiFiAPConfig.getAPLNetworkId().toString()), Log.DEBUG);
+        String netId;
+        if(wiFiAPConfig != null) {
+            netId = wiFiAPConfig.getAPLNetworkId().toString();
+        } else {
+            netId = "null";
+        }
+
+        APL.getTraceUtils().stopTrace(TAG, "getWiFiApConfiguration", String.format("Got configuration for %s",netId), Log.DEBUG);
 
 
         return wiFiAPConfig;
