@@ -22,6 +22,7 @@ import java.util.concurrent.TimeoutException;
 import be.shouldit.proxy.lib.APL;
 import be.shouldit.proxy.lib.APLNetworkId;
 import be.shouldit.proxy.lib.WiFiApConfig;
+import be.shouldit.proxy.lib.enums.SecurityType;
 import be.shouldit.proxy.lib.reflection.android.ProxySetting;
 
 
@@ -39,11 +40,14 @@ public class MainActivity extends Activity {
         if (intent.hasExtra(SSID)) {
             new ProxyChangeAsync().execute(this, intent);
         } else {
-            Toast.makeText(getApplicationContext(),
-                    "Error: No SSID given",
-                    Toast.LENGTH_LONG).show();
+            showPopup("Error: No SSID given");
             finish();
         }
+    }
+
+    public void showPopup(String msg) {
+        Toast.makeText(getBaseContext(), msg, Toast.LENGTH_SHORT).show();
+        Log.e(TAG, msg);
     }
 
     public class ProxyChangeAsync extends AsyncTask<Object, String, Void> {
@@ -60,9 +64,16 @@ public class MainActivity extends Activity {
 
         @Override
         protected Void doInBackground(Object... params) {
-            Log.d(TAG, "Starting proxy change thread");
-            Looper.prepare();
             activity = (Activity) params[0];
+            onProgressUpdate("Executing proxy change request...");
+            
+            // Looper is needed to handle broadcast messages
+            try {
+                Looper.prepare();
+            } catch (Exception e){
+                Log.e(TAG, "Error starting looper on thread", e);
+            }
+
             executor.executeChange((Intent) params[1]);
             return null;
         }
@@ -84,14 +95,9 @@ public class MainActivity extends Activity {
             activity.finish();
         }
 
-        public void showPopup(String msg) {
-            Toast.makeText(getBaseContext(), msg, Toast.LENGTH_SHORT).show();
-            Log.e(TAG, msg);
-        }
-
         public class ProxyChangeExecutor extends BroadcastReceiver {
 
-            private volatile boolean wifiConnected = false, waitingForConnection = false;
+            private volatile boolean wifiConnected = false;
 
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -132,14 +138,13 @@ public class MainActivity extends Activity {
 
                 APL.setup(getApplicationContext());
 
-                APLNetworkId networkId = findNetowrkId(ssid);
+                APLNetworkId networkId = findNetowrkId(ssid, key!=null);
                 if (networkId == null && resetWifi) {
                     restartWifi(ssid, key);
-                    networkId = findNetowrkId(ssid);
+                    networkId = findNetowrkId(ssid, key!=null);
                 }
 
                 if (networkId != null) {
-                    boolean proceed = true;
                     // get the remaining extras from the intent
                     String host = intent.getStringExtra(HOST);
                     String bypass = intent.getStringExtra(BYPASS);
@@ -152,6 +157,7 @@ public class MainActivity extends Activity {
 
                     WiFiApConfig wiFiApConfig = APL.getWiFiApConfiguration(APL.getConfiguredNetwork(networkId));
                     if (wiFiApConfig != null) {
+                        boolean proceed = true;
                         ProxySetting proxySetting = null;
                         int port = 8080;
                         if (clearProxy) {
@@ -220,8 +226,20 @@ public class MainActivity extends Activity {
                             && newConfig.getProxyPort() == port
                             && (newConfig.getProxyExclusionList().isEmpty()
                             || newConfig.getProxyExclusionList().equals(bypass))) {
-                        onProgressUpdate("Proxy set to " + host + ":" + port
+                        
+                        onProgressUpdate("Proxy on " + newConfig.getSSID() 
+                                + " with security " + newConfig.getSecurityType().name() 
+                                + " set to " + host + ":" + port
                                 + " bypass: " + bypass);
+                        try {
+                            onProgressUpdate("Checking wifi connectivity...");
+                            waitForWifiConnectivity();
+                            onProgressUpdate("Wifi connected and proxy set!");
+                        } catch (Exception e){
+                            onProgressUpdate("Warning: Wifi is not connected. Check that the " +
+                                    "correct SSID and key combination were given.");
+                            Log.e(TAG, "", e);
+                        }
                         return true;
                     } else {
                         return false;
@@ -272,10 +290,12 @@ public class MainActivity extends Activity {
                 }
             }
 
-            private APLNetworkId findNetowrkId(String _ssid) {
+            private APLNetworkId findNetowrkId(String ssid, boolean isSecured) {
                 Map<APLNetworkId, WifiConfiguration> networks = APL.getConfiguredNetworks();
                 for (APLNetworkId aplNetworkId : networks.keySet()) {
-                    if (aplNetworkId.SSID.equals(_ssid)) {
+                    if (aplNetworkId.SSID.equals(ssid) 
+                            && ((isSecured && !aplNetworkId.Security.equals(SecurityType.SECURITY_NONE))
+                            || (aplNetworkId.Security.equals(SecurityType.SECURITY_NONE) && !isSecured))) {
                         return aplNetworkId;
                     }
                 }
@@ -290,15 +310,15 @@ public class MainActivity extends Activity {
 
             private void waitForWifiConnectivity() throws TimeoutException {
                 long timeout = 10000;
-                long sleepTime = 100;
-                while (timeout > 0 && !wifiConnected) {
+                long sleepTime = 2000;
+                do {
                     try {
                         Thread.sleep(sleepTime);
                     } catch (Exception e) {
                         // no-op
                     }
                     timeout -= sleepTime;
-                }
+                } while (timeout > 0 && !wifiConnected);
                 if (!wifiConnected) {
                     throw new TimeoutException("Timeout while waiting for wifi to connect");
                 }
