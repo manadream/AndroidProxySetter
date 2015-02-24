@@ -27,10 +27,15 @@ Extras:
 	-e clear <boolean>				# A flag that will clear the proxy settings for the given SSID
 	
 Note that for setting a proxy, only host, port and ssid are required. The other extras are optional.
+Also note that if the `reset-wifi` flag is used it will "forget" any connected networks in order to reset the connection.
     
 example of setting the proxy on an open wifi network with a bypass string and reset wifi flag set:
 
 	adb shell am start -n tk.elevenk.proxysetter/.MainActivity -e host 192.168.56.1 -e port 8080 -e ssid PublicWifi -e bypass test.com,test2.com -e reset-wifi true
+	
+example of setting the proxy on a wifi network with a password:
+
+	adb shell am start -n tk.elevenk.proxysetter/.MainActivity -e host 192.168.56.1 -e port 8080 -e ssid PrivateWifi -e key Passw0rd
 
 The proxy can be cleared for an SSID by executing the following:
 

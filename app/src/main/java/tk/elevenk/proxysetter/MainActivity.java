@@ -12,7 +12,6 @@ import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Looper;
-import android.os.MessageQueue;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -51,7 +50,7 @@ public class MainActivity extends Activity {
 
         private Activity activity;
         private ProxyChangeExecutor executor;
-        
+
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -85,6 +84,11 @@ public class MainActivity extends Activity {
             activity.finish();
         }
 
+        public void showPopup(String msg) {
+            Toast.makeText(getBaseContext(), msg, Toast.LENGTH_SHORT).show();
+            Log.e(TAG, msg);
+        }
+
         public class ProxyChangeExecutor extends BroadcastReceiver {
 
             private volatile boolean wifiConnected = false, waitingForConnection = false;
@@ -95,12 +99,23 @@ public class MainActivity extends Activity {
                         .getSystemService(Context.CONNECTIVITY_SERVICE);
                 final NetworkInfo wifi = connMgr
                         .getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-                if (wifi.isAvailable() && waitingForConnection) {
-                    wifiConnected = true;
+                wifiConnected = wifi.isAvailable() && wifi.isConnected();
+                Log.d(TAG, "Received broadcast about wifi. Connected = " + wifiConnected);
+                debugIntent(intent, TAG);
+            }
+
+            private void debugIntent(Intent intent, String tag) {
+                Log.v(tag, "action: " + intent.getAction());
+                Log.v(tag, "component: " + intent.getComponent());
+                Bundle extras = intent.getExtras();
+                if (extras != null) {
+                    for (String key : extras.keySet()) {
+                        Log.v(tag, "key [" + key + "]: " +
+                                extras.get(key));
+                    }
                 } else {
-                    wifiConnected = false;
+                    Log.v(tag, "no extras");
                 }
-                Log.d(TAG, "Received broadcast about wifi: " + wifiConnected);
             }
 
             private void executeChange(Intent intent) {
@@ -225,7 +240,7 @@ public class MainActivity extends Activity {
                         for (WifiConfiguration wifiConfiguration : wifiManager.getConfiguredNetworks()) {
                             wifiManager.removeNetwork(wifiConfiguration.networkId);
                         }
-                    } catch (Exception e){
+                    } catch (Exception e) {
                         Log.e(TAG, "Error clearing wifi configs", e);
                     }
                     APL.enableWifi();
@@ -273,28 +288,22 @@ public class MainActivity extends Activity {
 
             }
 
-            private void waitForWifiConnectivity() throws TimeoutException{
-                waitingForConnection = true;
+            private void waitForWifiConnectivity() throws TimeoutException {
                 long timeout = 10000;
                 long sleepTime = 100;
-                while(timeout > 0 && !wifiConnected){
+                while (timeout > 0 && !wifiConnected) {
                     try {
                         Thread.sleep(sleepTime);
-                    } catch (Exception e){
+                    } catch (Exception e) {
                         // no-op
                     }
-                    timeout -= 100;
+                    timeout -= sleepTime;
                 }
-                if(!wifiConnected){
+                if (!wifiConnected) {
                     throw new TimeoutException("Timeout while waiting for wifi to connect");
                 }
             }
 
-        }
-
-        public void showPopup(String msg){
-            Toast.makeText(getBaseContext(), msg, Toast.LENGTH_SHORT).show();
-            Log.e(TAG, msg);
         }
     }
 }
