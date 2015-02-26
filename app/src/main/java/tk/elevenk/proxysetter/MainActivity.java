@@ -262,6 +262,7 @@ public class MainActivity extends Activity {
                         Log.e(TAG, "Error clearing wifi configs", e);
                     }
                     APL.enableWifi();
+                    wifiManager.saveConfiguration();
 
                     // create new config with given ssid and key and connect to it
                     WifiConfiguration wifiConfiguration = new WifiConfiguration();
@@ -277,9 +278,21 @@ public class MainActivity extends Activity {
                     if (netId < 0) {
                         netId = wifiManager.updateNetwork(wifiConfiguration);
                         if (netId < 0) {
-                            throw new RuntimeException("Unable to add or update network configuration for " + ssid);
+                            onProgressUpdate("Having trouble resetting wifi, hard resetting...");
+                            APL.disableWifi();
+                            APL.enableWifi();
+                            try {
+                                waitForWifiConnectivity();
+                            } catch (Exception e) {
+                                Log.e(TAG, "Timeout when trying to hard reset wifi", e);
+                            }
+                            netId = wifiManager.addNetwork(wifiConfiguration);
+                            if(netId < 0) {
+                                throw new RuntimeException("Unable to add or update network configuration for " + ssid);
+                            }
                         }
                     }
+
                     wifiManager.saveConfiguration();
                     wifiManager.disconnect();
                     wifiManager.enableNetwork(netId, true);
