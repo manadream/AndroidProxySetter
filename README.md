@@ -6,7 +6,7 @@ This app uses the Android Proxy Library from [here](https://github.com/shouldit/
 
 # Usage
 
-Build and install the apk to your device, then perform the following actions. 
+Build (or [download](https://github.com/jpkrause/AndroidProxySetter/releases)) and install the apk to your device, then perform the following actions. 
 
 Set proxy by executing this command with extras listed below:
 
