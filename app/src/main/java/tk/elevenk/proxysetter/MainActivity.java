@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import java.util.BitSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
 import be.shouldit.proxy.lib.APL;
@@ -36,13 +37,14 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         Intent intent = getIntent();
 
-        // must have ssid to continue
-        if (intent.hasExtra(SSID)) {
-            new ProxyChangeAsync().execute(this, intent);
-        } else {
-            showPopup("Error: No SSID given");
+        if (!intent.hasExtra(HOST) && !intent.hasExtra(CLEAR)) {
+            showPopup("Error: No HOST given, stopping");
             finish();
         }
+        if (!intent.hasExtra(SSID)) {
+            showPopup("Error: No SSID given, setting on the fist one");
+        }
+        new ProxyChangeAsync().execute(this, intent);
     }
 
     public void showPopup(String msg) {
@@ -138,10 +140,12 @@ public class MainActivity extends Activity {
 
                 APL.setup(getApplicationContext());
 
-                APLNetworkId networkId = findNetowrkId(ssid, key!=null);
-                if (networkId == null && resetWifi) {
+                APLNetworkId networkId = findNetworkId(ssid, key != null);
+                if (networkId == null && resetWifi && ssid != null) {
                     restartWifi(ssid, key);
-                    networkId = findNetowrkId(ssid, key!=null);
+                    networkId = findNetworkId(ssid, key != null);
+                }else if (networkId != null){
+                    ssid = networkId.SSID;
                 }
 
                 if (networkId != null) {
@@ -303,10 +307,10 @@ public class MainActivity extends Activity {
                 }
             }
 
-            private APLNetworkId findNetowrkId(String ssid, boolean isSecured) {
+            private APLNetworkId findNetworkId(String ssid, boolean isSecured) {
                 Map<APLNetworkId, WifiConfiguration> networks = APL.getConfiguredNetworks();
                 for (APLNetworkId aplNetworkId : networks.keySet()) {
-                    if (aplNetworkId.SSID.equals(ssid) 
+                    if ((aplNetworkId.SSID.equals(ssid) || ssid == null)
                             && ((isSecured && !aplNetworkId.Security.equals(SecurityType.SECURITY_NONE))
                             || (aplNetworkId.Security.equals(SecurityType.SECURITY_NONE) && !isSecured))) {
                         return aplNetworkId;

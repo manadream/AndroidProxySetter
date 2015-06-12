@@ -17,6 +17,7 @@ Extras:
 	-e host <host>					# The host ip or address for the proxy
 	-e port <port>					# The port for the proxy
 	-e ssid <ssid>					# The SSID of the wifi network to set proxy on
+									  (optional, will apply on the first one if empty)
 	-e key <shared key>				# The password/key for the wifi network
 	-e bypass <bypass string>		# The bypass string to use for proxy settings
 	-e reset-wifi <boolean>			# Whether or not to reset the wifi settings. This flag will tell
@@ -40,3 +41,8 @@ example of setting the proxy on a wifi network with a password:
 The proxy can be cleared for an SSID by executing the following:
 
 	adb shell am start -n tk.elevenk.proxysetter/.MainActivity -e ssid <ssid> -e clear true
+	
+example of a .sh script, pre-filling the IP Address, for daily updating of the unique SSID
+	
+	IPADDRESS=`ifconfig en0 | grep inet | grep -v inet6 | awk '{print $2}'`
+	adb shell am start -n tk.elevenk.proxysetter/.MainActivity -e host $IPADDRESS -e port 8888
