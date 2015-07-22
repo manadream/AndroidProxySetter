@@ -1,16 +1,31 @@
 package be.shouldit.proxy.lib;
 
-import be.shouldit.proxy.lib.enums.SecurityType;
+import android.os.Parcel;
+import android.os.Parcelable;
 
-import java.io.Serializable;
+import be.shouldit.proxy.lib.enums.SecurityType;
 
 /**
  * Created by Marco on 08/06/13.
  */
-public class APLNetworkId implements Serializable
+public class APLNetworkId implements Parcelable
 {
     public String SSID;
     public SecurityType Security;
+
+    private APLNetworkId(Parcel in)
+    {
+        this.SSID = in.readString();
+        int tmpSecurity = in.readInt();
+        this.Security = tmpSecurity == -1 ? null : SecurityType.values()[tmpSecurity];
+    }
+
+    public static final Creator<APLNetworkId> CREATOR = new Creator<APLNetworkId>()
+    {
+        public APLNetworkId createFromParcel(Parcel source) {return new APLNetworkId(source);}
+
+        public APLNetworkId[] newArray(int size) {return new APLNetworkId[size];}
+    };
 
     public APLNetworkId(String ssid, SecurityType sec)
     {
@@ -52,5 +67,15 @@ public class APLNetworkId implements Serializable
     public String toString()
     {
         return String.format("'%s' - '%s'", SSID, Security);
+    }
+
+    @Override
+    public int describeContents() { return 0; }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags)
+    {
+        dest.writeString(this.SSID);
+        dest.writeInt(this.Security == null ? -1 : this.Security.ordinal());
     }
 }

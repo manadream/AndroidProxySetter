@@ -52,6 +52,7 @@
 	<string name="status_title_invalid_port">Invalid Proxy Port</string>
 	<string name="status_title_not_reachable">Proxy Not Reachable</string>
 	<string name="status_title_web_not_reachable">WEB Not Reachable</string>
+    <string name="status_title_invalid_pac">Not valid PAC configuration</string>
 
 	<string name="status_description_enabled">Proxy (Host:Port): </string>
 	<string name="status_description_checking">Proxy Settings is validating your proxy configuration &#8230;</string>
@@ -94,4 +95,11 @@
     <string name="wifi_security_short_psk_generic">@string/wifi_security_short_wpa_wpa2</string>
     <!-- Do not translate.  Concise terminology for wifi with 802.1x EAP security -->
     <string name="wifi_security_short_eap">802.1x</string>
+
+    <string name="status_pac_invalid_uri">Not a valid URI</string>
+    <string name="status_pac_cannot_retrieve_uri">Cannot retrieve URI content</string>
+    <string name="status_pac_valid">Got a valid PAC file</string>
+    <string name="status_pac_empty_invalid">Got an empty PAC file</string>
+    <string name="status_pac_valid_uri">PAC valid URI</string>
+    <string name="not_valid_proxy_setting">Not valid proxy setting</string>
 </resources>

@@ -20,11 +20,8 @@ package android.net;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.TextUtils;
-import android.util.Log;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 
 /**
  * A container class for the http proxy info
@@ -91,9 +88,9 @@ public class ProxyProperties implements Parcelable {
             mParsedExclusionList = new String[splitExclusionList.length * 2];
             for (int i = 0; i < splitExclusionList.length; i++) {
                 String s = splitExclusionList[i].trim();
-                if (s.startsWith(".")) s = s.substring(1);
+                if (s.startsWith("")) s = s.substring(1);
                 mParsedExclusionList[i*2] = s;
-                mParsedExclusionList[(i*2)+1] = "." + s;
+                mParsedExclusionList[(i*2)+1] = "" + s;
             }
         }
     }

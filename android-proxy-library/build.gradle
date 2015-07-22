@@ -10,33 +10,42 @@ apply plugin: 'signing'
 
 android {
 
-    compileSdkVersion 21
-    buildToolsVersion '21.1.2'
+    compileSdkVersion 22
+    buildToolsVersion '22.0.1'
 
     defaultConfig {
         minSdkVersion 8
-        targetSdkVersion 21
-        versionCode 800400
-        versionName "4.0"
+        targetSdkVersion 22
+        versionCode 800410
+        versionName "4.1"
     }
 
     sourceSets {
+
         main {
-            java {
-                srcDir 'src'
-                exclude '**/excluded_from_build/**'
-            }
+            manifest.srcFile 'AndroidManifest.xml'
+            java.srcDirs = ['src/main/java']
+            res.srcDirs = ['src/main/res']
+            assets.srcDirs = ['src/main/assets']
         }
+    }
+}
+
+allprojects {
+    // show deprecation warnings for all projects
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << "-Xlint:deprecation"
+        options.compilerArgs << "-Xlint:unchecked"
     }
 }
 
 dependencies {
 
-    compile 'com.jakewharton.timber:timber:2.5.0'
+    compile 'com.jakewharton.timber:timber:2.7.1'
+
 }
 
-
-version = "4.0.0"
+version = "4.1.0"
 //version = '2.9.0-SNAPSHOT'
 group = "be.shouldit"
 

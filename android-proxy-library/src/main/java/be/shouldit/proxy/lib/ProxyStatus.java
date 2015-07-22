@@ -1,13 +1,18 @@
 package be.shouldit.proxy.lib;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.Serializable;
+import java.sql.Array;
 import java.text.DateFormat;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -15,11 +20,8 @@ import be.shouldit.proxy.lib.enums.CheckStatusValues;
 import be.shouldit.proxy.lib.enums.ProxyStatusProperties;
 import timber.log.Timber;
 
-public class ProxyStatus implements Serializable
+public class ProxyStatus implements Parcelable
 {
-	public static final String TAG = ProxyStatus.class.getSimpleName();
-	private static final long serialVersionUID = -2657093750716229587L;
-
 	SortedMap<ProxyStatusProperties, ProxyStatusItem> properties;
 	public Date checkedDate;
 
@@ -87,6 +89,7 @@ public class ProxyStatus implements Serializable
 			properties.put(ProxyStatusProperties.PROXY_VALID_HOSTNAME, new ProxyStatusItem(ProxyStatusProperties.PROXY_VALID_HOSTNAME));
 			properties.put(ProxyStatusProperties.PROXY_VALID_PORT, new ProxyStatusItem(ProxyStatusProperties.PROXY_VALID_PORT));
 			properties.put(ProxyStatusProperties.PROXY_REACHABLE, new ProxyStatusItem(ProxyStatusProperties.PROXY_REACHABLE));
+            properties.put(ProxyStatusProperties.PAC_VALID_URI, new ProxyStatusItem(ProxyStatusProperties.PAC_VALID_URI));
 		}
 	}
 
@@ -252,5 +255,69 @@ public class ProxyStatus implements Serializable
         }
     }
 
+    @Override
+    public int describeContents() { return 0; }
 
+    @Override
+    public void writeToParcel(Parcel dest, int flags)
+    {
+        dest.writeInt(this.properties.size());
+        for (final Map.Entry<ProxyStatusProperties, ProxyStatusItem> entry : this.properties.entrySet())
+        {
+            dest.writeInt(entry.getKey() == null ? -1 : entry.getKey().ordinal());
+            dest.writeParcelable(entry.getValue(),flags);
+        }
+
+        dest.writeLong(checkedDate != null ? checkedDate.getTime() : -1);
+    }
+
+    private ProxyStatus(Parcel in)
+    {
+        final int size = in.readInt();
+        this.properties = Collections.synchronizedSortedMap(new TreeMap<ProxyStatusProperties, ProxyStatusItem>(new ProxyStatusPropertiesComparator()));
+        for (int i=0; i<size; i++)
+        {
+            final int tmpStatusCode = in.readInt();
+            ProxyStatusProperties statusProperty = tmpStatusCode == -1 ? null : ProxyStatusProperties.values()[tmpStatusCode];
+            ProxyStatusItem item = in.readParcelable(ProxyStatusItem.class.getClassLoader());
+            this.properties.put(statusProperty, item);
+        }
+
+        long tmpCheckedDate = in.readLong();
+        this.checkedDate = tmpCheckedDate == -1 ? null : new Date(tmpCheckedDate);
+    }
+
+    public static final Creator<ProxyStatus> CREATOR = new Creator<ProxyStatus>()
+    {
+        public ProxyStatus createFromParcel(Parcel source) {return new ProxyStatus(source);}
+
+        public ProxyStatus[] newArray(int size) {return new ProxyStatus[size];}
+    };
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (!(o instanceof ProxyStatus)) return false;
+
+        ProxyStatus that = (ProxyStatus) o;
+
+        if (checkedDate != null ? !checkedDate.equals(that.checkedDate) : that.checkedDate != null)
+            return false;
+
+        if (properties != null)
+        {
+            if (!Arrays.equals(properties.keySet().toArray(), that.properties.keySet().toArray()))
+                return false;
+
+            if (!Arrays.equals(properties.values().toArray(), that.properties.values().toArray()))
+                return false;
+        }
+        else if (that.properties != null)
+        {
+            return false;
+        }
+
+        return true;
+    }
 }

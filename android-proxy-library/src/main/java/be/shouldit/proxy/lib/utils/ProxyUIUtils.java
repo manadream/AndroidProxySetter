@@ -24,36 +24,40 @@ public class ProxyUIUtils
 					switch (status.statusCode)
 					{
 						case PROXY_ENABLED:
-							description = callerContext.getResources().getString(R.string.status_title_not_enabled);
+							description = callerContext.getString(R.string.status_title_not_enabled);
 							break;
 
 						case PROXY_VALID_HOSTNAME:
-							description = callerContext.getResources().getString(R.string.status_title_invalid_host);
+							description = callerContext.getString(R.string.status_title_invalid_host);
 							break;
 
 						case PROXY_VALID_PORT:
-							description = callerContext.getResources().getString(R.string.status_title_invalid_port);
+							description = callerContext.getString(R.string.status_title_invalid_port);
 							break;
 
 						case PROXY_REACHABLE:
-							description = callerContext.getResources().getString(R.string.status_title_not_reachable);
+							description = callerContext.getString(R.string.status_title_not_reachable);
 							break;
 
 						case WEB_REACHABLE:
-							description = callerContext.getResources().getString(R.string.status_title_web_not_reachable);
+							description = callerContext.getString(R.string.status_title_web_not_reachable);
 							break;
+
+                        case PAC_VALID_URI:
+                            description = callerContext.getString(R.string.status_title_invalid_pac);
+                            break;
 
 						default:
 							description = "";
 					}
 				}
 				else
-					description = callerContext.getResources().getString(R.string.status_title_enabled);
+					description = callerContext.getString(R.string.status_title_enabled);
 			}	
 			break;
 
 			case CHECKING:
-				description = callerContext.getResources().getString(R.string.status_title_checking);
+				description = callerContext.getString(R.string.status_title_checking);
 				break;
 
 			default:
@@ -79,22 +83,22 @@ public class ProxyUIUtils
 					switch (status.statusCode)
 					{
 						case PROXY_ENABLED:
-							description = callerContext.getResources().getString(R.string.status_description_not_enabled);
+							description = callerContext.getString(R.string.status_description_not_enabled);
 							break;
 
 						case PROXY_VALID_HOSTNAME:
-							description = callerContext.getResources().getString(R.string.status_description_invalid_host);
+							description = callerContext.getString(R.string.status_description_invalid_host);
 							break;
 
 						case PROXY_VALID_PORT:
-							description = callerContext.getResources().getString(R.string.status_description_invalid_port);
+							description = callerContext.getString(R.string.status_description_invalid_port);
 							break;
 
 						case PROXY_REACHABLE:
-							description = callerContext.getResources().getString(R.string.status_description_not_reachable);
+							description = callerContext.getString(R.string.status_description_not_reachable);
 							break;
 						case WEB_REACHABLE:
-							description = callerContext.getResources().getString(R.string.status_description_web_not_reachable);
+							description = callerContext.getString(R.string.status_description_web_not_reachable);
 							break;
 
 						default:
@@ -103,8 +107,8 @@ public class ProxyUIUtils
 				}
 				else
 				{
-					description = callerContext.getResources().getString(R.string.status_description_enabled);
-					description = description + " " + conf.toStatusString();
+					description = callerContext.getString(R.string.status_description_enabled);
+					description = description + " " + conf.getProxyStatusString();
 					break;
 				}
 
@@ -112,7 +116,7 @@ public class ProxyUIUtils
 			break;
 
 			case CHECKING:
-				description = callerContext.getResources().getString(R.string.status_description_checking);
+				description = callerContext.getString(R.string.status_description_checking);
 				break;
 
 			default:
@@ -125,7 +129,7 @@ public class ProxyUIUtils
 
 	public static String ProxyConfigToStatusString(WiFiApConfig conf, Context callerContext)
 	{
-		String message = String.format("%s", conf.toStatusString());
+		String message = String.format("%s", conf.getProxyStatusString());
 
 		message += " - " + GetStatusTitle(conf, callerContext);
 

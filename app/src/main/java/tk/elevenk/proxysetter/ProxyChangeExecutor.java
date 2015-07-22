@@ -75,7 +75,7 @@ public class ProxyChangeExecutor extends BroadcastReceiver {
 		// find the network id to make proxy change on
 		proxyChangeParams.setNetworkId(getAPLNetworkId(proxyChangeParams));
 		if (proxyChangeParams.getNetworkId() != null) {
-			proxyChangeParams.setWiFiApConfig(APL.getWiFiApConfiguration(APL.getConfiguredNetwork(proxyChangeParams.getNetworkId())));
+			proxyChangeParams.setWiFiApConfig(APL.getWiFiAPConfiguration(APL.getConfiguredNetwork(proxyChangeParams.getNetworkId())));
 			executeProxyChange(proxyChangeParams);
 		} else {
 			Log.e(TAG, "Error getting network ID. Given Network may not exist. Aborting.");
@@ -110,7 +110,7 @@ public class ProxyChangeExecutor extends BroadcastReceiver {
 	}
 
 	private APLNetworkId findNetworkId(ProxyChangeParams params) {
-		boolean isSecured = params.getKey() != null;
+		boolean isSecured = params.getKey() != null || (params.getUsername() != null && params.getPassword() != null);
 		Map<APLNetworkId, WifiConfiguration> networks = APL.getConfiguredNetworks();
 		Log.d(TAG, networks.toString());
 		for (APLNetworkId aplNetworkId : networks.keySet()) {
@@ -146,7 +146,7 @@ public class ProxyChangeExecutor extends BroadcastReceiver {
 
 		if (params.getWiFiApConfig() != null) {
 			try {
-				APL.writeWifiAPConfig(params.getWiFiApConfig());
+				APL.writeWifiAPConfig(params.getWiFiApConfig(), 10, 10000);
 			} catch (Exception e) {
 				if (!params.isClearProxy()) {
 					proxyChangeAsync.onProgressUpdate("APL Error: proxy not set");
@@ -157,7 +157,7 @@ public class ProxyChangeExecutor extends BroadcastReceiver {
 		}
 
 		// Get the current config settings to see if proxy was changed
-		WiFiApConfig newConfig = APL.getWiFiApConfiguration(APL.getConfiguredNetwork(params.getNetworkId()));
+		WiFiApConfig newConfig = APL.getWiFiAPConfiguration(APL.getConfiguredNetwork(params.getNetworkId()));
 		if (newConfig != null && newConfig.getProxySetting().equals(params.getProxySetting())) {
 			if (params.getProxySetting().equals(ProxySetting.NONE)) {
 				proxyChangeAsync.onProgressUpdate("Proxy cleared");

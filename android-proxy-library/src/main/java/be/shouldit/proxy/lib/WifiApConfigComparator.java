@@ -10,9 +10,9 @@ import java.util.Comparator;
 public class WifiApConfigComparator implements Comparator<WiFiApConfig>
 {
     @Override
-    public int compare(WiFiApConfig wiFiAPConfig, WiFiApConfig wiFiAPConfig2)
+    public int compare(WiFiApConfig wiFiApConfig, WiFiApConfig wiFiApConfig2)
     {
-        return compareWifiAp(wiFiAPConfig, wiFiAPConfig2);
+        return compareWifiAp(wiFiApConfig, wiFiApConfig2);
     }
 
     public static int compareWifiAp(WiFiApConfig current, WiFiApConfig other)

@@ -51,4 +51,16 @@ public class APLReflectionConstants
      * took an automated action such as disabling a malfunctioning configuration.
      */
     public static final int CHANGE_REASON_CONFIG_CHANGE = 2;
+
+
+    /* These values come from "wifi_eap_method" resource array */
+    public static final int WIFI_EAP_METHOD_PEAP = 0;
+    public static final int WIFI_EAP_METHOD_TLS  = 1;
+    public static final int WIFI_EAP_METHOD_TTLS = 2;
+    public static final int WIFI_EAP_METHOD_PWD  = 3;
+
+    /* These values come from "wifi_peap_phase2_entries" resource array */
+    public static final int WIFI_PEAP_PHASE2_NONE 	    = 0;
+    public static final int WIFI_PEAP_PHASE2_MSCHAPV2 	= 1;
+    public static final int WIFI_PEAP_PHASE2_GTC        = 2;
 }

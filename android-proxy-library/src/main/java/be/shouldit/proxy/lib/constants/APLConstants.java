@@ -10,6 +10,7 @@ public class APLConstants
      * Try to download a webpage using the current proxy configuration
      */
     public static final Integer DEFAULT_TIMEOUT = 10000; // 10 seconds
+    public static final Integer MAX_DOWNLOAD_LENGTH = 50 * 1024; // 50 Kb MAX
 
 
     /**

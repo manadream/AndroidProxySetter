@@ -22,7 +22,6 @@ import android.os.Parcelable;
 import android.text.TextUtils;
 
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import java.util.Locale;
 
 /**
@@ -116,9 +115,9 @@ public class ProxyProperties implements Parcelable {
             mParsedExclusionList = new String[splitExclusionList.length * 2];
             for (int i = 0; i < splitExclusionList.length; i++) {
                 String s = splitExclusionList[i].trim();
-                if (s.startsWith(".")) s = s.substring(1);
+                if (s.startsWith("")) s = s.substring(1);
                 mParsedExclusionList[i*2] = s;
-                mParsedExclusionList[(i*2)+1] = "." + s;
+                mParsedExclusionList[(i*2)+1] = "" + s;
             }
         }
     }
@@ -137,6 +136,17 @@ public class ProxyProperties implements Parcelable {
             }
         }
         return false;
+    }
+
+    public boolean isValid() {
+        if (!TextUtils.isEmpty(mPacFileUrl)) return true;
+        try {
+            Proxy.validate(mHost == null ? "" : mHost, mPort == 0 ? "" : Integer.toString(mPort),
+                    mExclusionList == null ? "" : mExclusionList);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+        return true;
     }
 
     public java.net.Proxy makeProxy() {

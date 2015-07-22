@@ -15,13 +15,35 @@ public class TraceUtils
 {
     /**
      * ANDROID LOG LEVELS
-     * <p/>
+     *
      * VERBOSE	Constant Value: 2 (0x00000002)
+     *  Use this when you want to go absolutely nuts with your logging.
+     *  If for some reason you've decided to log every little thing in a particular
+     *  part of your app, use the Log.v tag.
+     *
      * DEBUG	Constant Value: 3 (0x00000003)
-     * INFO	Constant Value: 4 (0x00000004)
-     * WARN	Constant Value: 5 (0x00000005)
+     *  Use this for debugging purposes.
+     *  If you want to print out a bunch of messages so you can log the exact flow
+     *  of your program, use this. If you want to keep a log of variable values, use this.
+     *
+     * INFO	    Constant Value: 4 (0x00000004)
+     *  Use this to post useful information to the log.
+     *  For example: that you have successfully connected to a server.
+     *  Basically use it to report successes.
+     *
+     * WARN	    Constant Value: 5 (0x00000005)
+     *  Use this when you suspect something shady is going on.
+     *  You may not be completely in full on error mode, but maybe you recovered
+     *  from some unexpected behavior. Basically, use this to log stuff you didn't expect
+     *  to happen but isn't necessarily an error.
+     *
      * ERROR	Constant Value: 6 (0x00000006)
+     *  This is for when bad stuff happens.
+     *  Use this tag in places like inside a catch statment.
+     *  You know that an error has occurred and therefore you're logging an error.
+     *
      * ASSERT	Constant Value: 7 (0x00000007)
+     *
      */
 
     private Map<String, TraceDate> startTraces;
@@ -117,7 +139,7 @@ public class TraceUtils
                 long diffFromLast = now.getTime() - start.getLastTime().getTime();
                 long diffFromStart = now.getTime() - start.getStartTime().getTime();
                 start.updateLast(now);
-                log(tag, "FINISH " + key + " " + msg + " %%%%%%%%%%%%% " + diffFromLast + " ms (Tot: " + diffFromStart  + " ms) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%", logLevel);
+                log(tag, "FINISH " + key + " " + (msg == null? "NULL": msg) + " %%%%%%%%%%%%% " + diffFromLast + " ms (Tot: " + diffFromStart  + " ms) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%", logLevel);
 
                 startTraces.remove(key);
             }
@@ -142,43 +164,78 @@ public class TraceUtils
     public static void logIntent(String tag, String msg, Intent intent, int logLevel, boolean logExtras)
     {
         StringBuilder sb = new StringBuilder();
+        String logString = null;
 
-        if (msg != null)
+        try
         {
-            sb.append(msg);
-            sb.append(intent.toString());
-        }
-        else
-        {
-            sb.append("LOG Intent: ");
-            sb.append(intent.toString());
-        }
 
-        if (intent.getAction() != null)
-        {
-            sb.append(intent.getAction());
-            sb.append(" ");
-        }
-
-        if (intent.getDataString() != null)
-        {
-            sb.append(intent.getDataString());
-            sb.append(" ");
-        }
-
-        if (logExtras)
-        {
-            Bundle extras = intent.getExtras();
-            if (extras != null)
+            if (msg != null)
             {
-                for (String key : extras.keySet())
+                sb.append(msg);
+                sb.append(intent.toString());
+            }
+            else
+            {
+                sb.append("LOG Intent: ");
+                sb.append(intent.toString());
+            }
+
+            logString = sb.toString();
+
+            if (intent.getAction() != null)
+            {
+                sb.append(intent.getAction());
+                sb.append(" ");
+            }
+
+            logString = sb.toString();
+
+            if (intent.getDataString() != null)
+            {
+                sb.append(intent.getDataString());
+                sb.append(" ");
+            }
+
+            logString = sb.toString();
+
+            if (logExtras)
+            {
+                Bundle extras = intent.getExtras();
+                if (extras != null)
                 {
-                    String extra = String.valueOf(extras.get(key));
-                    sb.append(String.format("EXTRA [\"%s\"]: %s ",key,extra));
+                    for (String key : extras.keySet())
+                    {
+                        String extra = String.valueOf(extras.get(key));
+                        sb.append(String.format("EXTRA [\"%s\"]: %s ", key, extra));
+                    }
                 }
+            }
+
+            logString = sb.toString();
+        }
+        catch (OutOfMemoryError e)
+        {
+            Timber.e(e,"OutOfMemoryError preparing intent log");
+        }
+
+        log(tag, logString, logLevel);
+    }
+
+    public long totalElapsedTime(String key)
+    {
+        Long diffFromStart = null;
+
+        synchronized (startTraces)
+        {
+            if (startTraces != null && startTraces.containsKey(key))
+            {
+                TraceDate start = startTraces.get(key);
+                Date now = new Date();
+                diffFromStart = now.getTime() - start.getStartTime().getTime();
+
             }
         }
 
-        log(tag, sb.toString(), logLevel);
+        return diffFromStart;
     }
 }
