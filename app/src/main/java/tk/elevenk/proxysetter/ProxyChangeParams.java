@@ -16,14 +16,15 @@ public class ProxyChangeParams {
 	// ***************************************************
 
 	public static final String HOST = "host", PORT = "port", SSID = "ssid",
-			CLEAR = "clear", BYPASS = "bypass", RESET_WIFI = "reset-wifi", KEY = "key";
+			CLEAR = "clear", BYPASS = "bypass", RESET_WIFI = "reset-wifi", KEY = "key",
+			USERNAME = "username", PASSWORD = "password";
 	private static final String TAG = "ProxySetterApp";
 
 	// ***************************************************
 	// ATTRIBUTES
 	// ***************************************************
 
-	private String ssid, key, host, bypass;
+	private String ssid, key, host, bypass, username, password;
 	private int port;
 	private boolean resetWifi, clearProxy;
 	private ProxySetting proxySetting;
@@ -63,6 +64,8 @@ public class ProxyChangeParams {
 			Log.d(TAG, "Invalid port or none given, defaulting to 8080.", e);
 			port = 8080;
 		}
+		username = intent.getStringExtra(USERNAME);
+		password = intent.getStringExtra(PASSWORD);
 	}
 
 	private void processAPLSpecificProperties(){
@@ -171,5 +174,21 @@ public class ProxyChangeParams {
 			}
 			this.wiFiApConfig.setProxySetting(proxySetting);
 		}
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
 }
