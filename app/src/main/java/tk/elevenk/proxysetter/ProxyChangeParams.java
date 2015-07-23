@@ -161,7 +161,7 @@ public class ProxyChangeParams {
 		return wiFiApConfig;
 	}
 
-	public void setWiFiApConfig(WiFiApConfig wiFiApConfig) {
+	public void prepareAndSetWiFiApConfig(WiFiApConfig wiFiApConfig) {
 		this.wiFiApConfig = wiFiApConfig;
 		if(this.wiFiApConfig != null) {
 			if (!clearProxy && host != null) {

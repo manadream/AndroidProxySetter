@@ -75,7 +75,7 @@ public class ProxyChangeExecutor extends BroadcastReceiver {
 		// find the network id to make proxy change on
 		proxyChangeParams.setNetworkId(getAPLNetworkId(proxyChangeParams));
 		if (proxyChangeParams.getNetworkId() != null) {
-			proxyChangeParams.setWiFiApConfig(APL.getWiFiAPConfiguration(APL.getConfiguredNetwork(proxyChangeParams.getNetworkId())));
+			proxyChangeParams.prepareAndSetWiFiApConfig(APL.getWiFiAPConfiguration(APL.getConfiguredNetwork(proxyChangeParams.getNetworkId())));
 			executeProxyChange(proxyChangeParams);
 		} else {
 			Log.e(TAG, "Error getting network ID. Given Network may not exist. Aborting.");
@@ -110,7 +110,7 @@ public class ProxyChangeExecutor extends BroadcastReceiver {
 	}
 
 	private APLNetworkId findNetworkId(ProxyChangeParams params) {
-		boolean isSecured = params.getKey() != null || (params.getUsername() != null && params.getPassword() != null);
+		boolean isSecured = params.getKey() != null;
 		Map<APLNetworkId, WifiConfiguration> networks = APL.getConfiguredNetworks();
 		Log.d(TAG, networks.toString());
 		for (APLNetworkId aplNetworkId : networks.keySet()) {
