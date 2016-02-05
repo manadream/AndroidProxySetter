@@ -139,7 +139,7 @@ public class ProxyChangeExecutor extends BroadcastReceiver {
             proxyChangeAsync.onProgressUpdate("No SSID specified - trying to find connected.");
             for (Map.Entry<APLNetworkId, WifiConfiguration> entry : networks.entrySet()) {
                 if (entry.getValue().status == WifiConfiguration.Status.CURRENT) {
-                    
+
                     proxyChangeAsync.onProgressUpdate(String.format("No SSID specified, but found %s as the connected network - settings proxy on this!",
                             entry.getKey().SSID));
                     return entry.getKey();
