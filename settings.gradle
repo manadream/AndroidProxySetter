@@ -17,4 +17,4 @@
  *
  */
 
-include ':app', ':android-proxy-library'
+include ':app'
