@@ -132,6 +132,18 @@ public class ProxyChangeExecutor extends BroadcastReceiver {
 		boolean isSecured = params.getKey() != null;
 		Map<APLNetworkId, WifiConfiguration> networks = APL.getConfiguredNetworks();
 		Log.d(TAG, networks.toString());
+
+		if (params.getSsid() == null) {
+			proxyChangeAsync.onProgressUpdate("No SSID specified - trying to find connected.");
+			for (Map.Entry<APLNetworkId, WifiConfiguration> entry : networks.entrySet()) {
+					if (entry.getValue().status == WifiConfiguration.Status.CURRENT) {	                
+						proxyChangeAsync.onProgressUpdate(String.format("No SSID specified, but found %s as the connected network - settings proxy on this!",
+							entry.getKey().SSID));
+					return entry.getKey();
+				}
+			}
+		}
+ 
 		for (APLNetworkId aplNetworkId : networks.keySet()) {
 			if ((aplNetworkId.SSID.equals(params.getSsid()) || params.getSsid() == null)
 					&& ((isSecured && !aplNetworkId.Security.equals(SecurityType.SECURITY_NONE))
