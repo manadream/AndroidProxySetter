@@ -32,12 +32,12 @@ import android.util.Log;
  */
 public class ProxyChangeAsync extends AsyncTask<Object, String, Void> {
 
-	private Activity activity;
+	private MainActivity activity;
 	private ProxyChangeExecutor executor;
 
 	private static final String TAG = "ProxySetterApp";
 
-	public ProxyChangeAsync(Activity activity) {
+	public ProxyChangeAsync(MainActivity activity) {
 		this.activity = activity;
 	}
 
@@ -47,12 +47,11 @@ public class ProxyChangeAsync extends AsyncTask<Object, String, Void> {
 		// init executor and register it to receive wifi state change broadcasts
 		executor = new ProxyChangeExecutor(activity, this);
 		activity.getApplicationContext().registerReceiver(executor, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+		onProgressUpdate("Executing proxy change request...");
 	}
 
 	@Override
 	protected Void doInBackground(Object... params) {
-		onProgressUpdate("Executing proxy change request...");
-
 		// Looper is needed to handle broadcast messages
 		try {
 			Looper.prepare();
@@ -68,7 +67,7 @@ public class ProxyChangeAsync extends AsyncTask<Object, String, Void> {
 	public void onProgressUpdate(String... values) {
 		super.onProgressUpdate(values);
 		final String msg = values[0];
-		MainActivity.showPopup(msg);
+		activity.showPopup(msg);
 	}
 
 	@Override

@@ -1,8 +1,13 @@
 # AndroidProxySetter
-An android app that sets the proxy settings for a wifi access point by using adb. 
-This DOES NOT require root and will work with any device that has USB debugging on or any simulator (including Genymotion).
+An android app that sets the proxy settings for a wifi access point by using adb.
+This DOES NOT require root and will work with any device that has USB debugging on or any emulator (including Genymotion).
 
 This app uses the Android Proxy Library from [here](https://github.com/shouldit/android-proxy/tree/master/android-proxy-library)
+
+#NOTE
+This app now works on Android Emulators and Genymotion Emulators on Android Marshmallow 6.0 if you build/install the `emulator` build variant or APK.
+The `emulator` variant is signed with the Android Emulator platform keystore and thus has permissions to modify the wifi access points again.
+The `emulator` apk will only work on emulators, not real devices.
 
 # Usage
 
