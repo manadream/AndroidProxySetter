@@ -32,6 +32,10 @@
             android:name="tk.elevenk.proxysetter.MainActivity"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
             android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
     </application>
 
