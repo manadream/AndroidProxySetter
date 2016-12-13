@@ -19,6 +19,6 @@
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="tk.elevek.proxysetter"
+    package="tk.elevenk.proxysetter"
     android:sharedUserId="android.uid.system">
 </manifest>
