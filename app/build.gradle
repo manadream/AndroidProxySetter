@@ -21,13 +21,13 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 24
-    buildToolsVersion '23.0.3'
+    buildToolsVersion '28.0.0'
     defaultConfig {
         applicationId 'tk.elevenk.proxysetter'
         minSdkVersion 15
         targetSdkVersion 24
-        versionCode 5
-        versionName "0.2"
+        versionCode 6
+        versionName "0.2.1"
     }
     signingConfigs {
         emulatorSystemKeystore {
@@ -47,6 +47,6 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:24.2.0'
+    compile 'com.android.support:appcompat-v7:24.2.1'
     compile 'be.shouldit:android-proxy-library:4.2.6'
 }
